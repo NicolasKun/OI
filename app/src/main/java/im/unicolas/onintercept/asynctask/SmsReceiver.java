@@ -8,9 +8,14 @@ import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
 
 import im.unicolas.onintercept.Config;
+import im.unicolas.onintercept.OIApp;
 import im.unicolas.onintercept.bean.SmsInfo;
 import im.unicolas.onintercept.utils.SmsContent;
 
@@ -23,6 +28,7 @@ public class SmsReceiver extends ContentObserver {
     private static final String TAG = "SmsReceiver";
     private Context activity;
     private List<SmsInfo> infos;
+
     /**
      * Creates a content observer.
      *
@@ -47,9 +53,11 @@ public class SmsReceiver extends ContentObserver {
             Log.e(TAG, "onChange: 读取短信\n " + sb.toString());
         }*/
         SmsInfo info = infos.get(0);
-        Log.e(TAG, "onChange: 读取最新短信 \n" + info.getName() + "  >>> " + info.getPhoneNumber() + "\n" + info.getSmsbody());
         String smSr = "" + "|" + info.getPhoneNumber() + ":" + info.getSmsbody();
+
+        Log.e(TAG, "onChange: 读取最新短信 \n" + info.getName() + "  >>> " + info.getPhoneNumber() + "\n" + info.getSmsbody());
         activity.sendBroadcast(new Intent("smsReceiver").putExtra("sm_sr", smSr));
         super.onChange(selfChange);
     }
+
 }

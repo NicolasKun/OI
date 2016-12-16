@@ -1,12 +1,12 @@
 package im.unicolas.onintercept.ui;
 
+import android.app.Activity;
 import android.database.Cursor;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PersistableBundle;
 import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -28,7 +28,7 @@ import im.unicolas.onintercept.bean.MainListBean;
 import okhttp3.Call;
 import okhttp3.Response;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends Activity implements View.OnClickListener {
     private static final String TAG = "MainActivity";
 
     private ListView lvBook;
@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         init();
-        finish();
+        //finish();
     }
 
     protected void init() {
@@ -160,4 +160,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
     };
+
 }

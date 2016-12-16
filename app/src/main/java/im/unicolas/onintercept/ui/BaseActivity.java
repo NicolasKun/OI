@@ -1,10 +1,10 @@
 package im.unicolas.onintercept.ui;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PersistableBundle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -20,7 +20,7 @@ import okhttp3.Response;
  * Created by qq923 on 2016-12-07.
  */
 
-public class BaseActivity extends AppCompatActivity {
+public class BaseActivity extends Activity {
     private static final String TAG = "BaseActivity";
 
     public void loadDataByOkgo(final String reqTag, String url, HashMap<String, String> params,
