@@ -5,9 +5,12 @@ package im.unicolas.onintercept;
  */
 public interface Config {
     //http://127.0.0.1:9080/  101.200.56.38:8080
-    String DOMAIN = "http://192.168.0.100:9080/myprojects";
+    String DOMAIN = "http://192.168.0.11:9080/myprojects";
 
     String CONTACTS = DOMAIN + "/phonesms/listenphonenum.it";
 
     String POST_SMS = DOMAIN + "/phonesms/insertmessage.it";
+
+    String SMS_URI_ALL = "content://sms/";
+
 }

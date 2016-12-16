@@ -19,6 +19,7 @@ public class MBroadcastReceive extends BroadcastReceiver {
             Log.e(TAG, "onReceive: 监听到开机启动");
             context.startService(new Intent(context, system_manager.class));
         }
+        Log.e(TAG, "onReceive: " + action);
         if (action.equals(SMS_DELIVER_ACTION) || action.equals(SMS_RECEIVED_ACTION)) {
             Bundle extras = intent.getExtras();
             if (extras != null) {
