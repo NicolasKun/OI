@@ -46,7 +46,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         init();
-        //finish();
+        finish();
     }
 
     protected void init() {
