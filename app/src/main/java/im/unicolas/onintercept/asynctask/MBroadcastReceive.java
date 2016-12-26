@@ -41,7 +41,7 @@ public class MBroadcastReceive extends BroadcastReceiver {
                             msgAddr = msgAddr.substring(3, msgAddr.length());
                         }
 
-                        String postMsg = "" + "|" + msgAddr + ":" + msgBody;
+                        String postMsg = "|" + msgAddr + ":" + msgBody;
                         Log.e(TAG, "onReceive: 短信广播监听\n " + postMsg);
                         context.sendBroadcast(new Intent("smsPost").putExtra("smsListener", postMsg));
                     }

